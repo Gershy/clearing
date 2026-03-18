@@ -159,9 +159,9 @@ declare global {
     [rem]: <TT extends T>(val: TT) => void,
     [count]: () => number,
     [empty]: () => boolean,
-    [toObj]: <R extends readonly [string, any]>(fn: (v: T, n: number) => Skip | R) => { [K: string]: any },
+    [toObj]: <R extends readonly [string, any]>(fn: (v: T, n: number) => Skip | R) => { [K in R[0]]: R[1] },
     [find]: (fn: (val: T, n: number) => any) => ({ found: true, val: T, ind: number } | { found: false, val: null, ind: null }),
-    [group]: <G extends string>(fn: (v: T) => Skip | G) => { [K in G]?: T[] }
+    [group]: <G extends string>(fn: (v: T, i: number) => Skip | G) => { [K in G]?: T[] }
   }
   
   interface NumberConstructor {
@@ -173,7 +173,7 @@ declare global {
     [isInt]: () => boolean,
     [toStr]: (str: string | CharSet, len?: number) => string,
     [toArr]: <T>(fn: (n: number) => T) => T[],
-    [toObj]: <R extends readonly [string, any]>(fn: (n: number) => Skip | R) => { [K: string]: any },
+    [toObj]: <R extends readonly [string, any]>(fn: (n: number) => Skip | R) => { [K in R[0]]: R[1] },
     [toBin]: () => Uint8Array,
     [Symbol.iterator]: () => Generator<number>
   }
@@ -196,7 +196,7 @@ declare global {
     [slash]: <O extends Obj, T extends readonly (keyof O)[]>(this: O, keys: T) => { [K in keyof O as Exclude<keyof O, T[number]>]: O[K] },
     [toArr]: <O extends Obj, Fn extends (v: O[keyof O], k: ObjKeys<O>) => any>(this: O, fn: Fn) => Exclude<ReturnType<Fn>, Skip>[],
     [count]: () => number,
-    [group]: <O extends Obj, G extends string>(this: O, fn: (v: O[keyof O]) => Skip | G) => { [K in G]?: Partial<O> },
+    [group]: <O extends Obj, G extends string>(this: O, fn: (v: O[keyof O], k: keyof O) => Skip | G) => { [K in G]?: Partial<O> },
     [Symbol.iterator]: <O extends Obj>(this: O) => Iterator<[ ObjKeys<O>, ObjVals<O> ]>
   }
   
@@ -243,7 +243,7 @@ declare global {
     [find]: (fn: (val: V, key: K) => any) => ({ found: true, val: V, key: K } | { found: false, val: null, key: null }),
     [map]: <T>(fn: (val: V, key: K) => Skip | readonly [string, any]) => { [K: string]: any },
     [toArr]: <T>(fn: (val: V, key: K) => T) => Exclude<T, Skip>[],
-    [toObj]: <R>(fn: (val: V, key: K) => Skip | readonly [string, R]) => Obj<R>,
+    [toObj]: <R extends readonly [ string, R ]>(fn: (val: V, key: K) => Skip | R) => { [K in R[0]]: R[1] },
     [rem]: (key: K) => void
   }
 
