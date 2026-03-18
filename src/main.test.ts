@@ -4,6 +4,8 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { testRunner, assertEqual } from '../build/utils.test.ts';
 
+const { add, allArr, allObj, at, assert, base62, base64Std, base64Url, baseline, char, charset, code, count, cut, empty, find, fire, group, has, hasHead, hasTail, indent, int32, int64, isInt, later, limn, lower, map, mapk, merge, mod, padHead, padTail, rem, slash, slice, suppress, toArr, toBin, toNum, toObj, toStr, upper } = clearing;
+
 // Type testing
 (async () => {
   
@@ -20,21 +22,26 @@ import { testRunner, assertEqual } from '../build/utils.test.ts';
       Dive<{ a: { b: { c: 'xyz' } } }, [ 'a', 'b', 'c' ]>,
       'xyz'
     >,
-
+    
     3: Enforce<
       Dive<{ a: { b: { c: 'xyz' } } }, [ 'a', 'b' ]>,
       { c: 'xyz' }
     >,
-
+    
     4: Enforce<
       Dive<{ a: { b: { c: 'xyz' } } }, [ 'a', 'b', 'd' ]>,
       undefined
     >,
-
+    
     5: Enforce<
       Dive<{ a: { b: { c: 'xyz' } } }, [ 'a', 'c', 'b' ]>,
       undefined
-    >
+    >,
+    
+    6: Enforce<
+      Dive<{ [K: string]: 'z' }, [ 'a' ], 'def'>,
+      'def' | 'z'
+    >,
     
   };
   
@@ -45,6 +52,7 @@ import { testRunner, assertEqual } from '../build/utils.test.ts';
   
   await (async () => {
     
+    const fp = dirname(fileURLToPath(import.meta.url));
     const getSymbolSets = function*(str: string) {
       
       let lines = str.split('\n');
@@ -71,7 +79,7 @@ import { testRunner, assertEqual } from '../build/utils.test.ts';
               if (!line) return null;
               
               const match = line.match(reg);
-              if (!match) throw Object.assign(Error('bad symbol line'), { fp, reg, line });
+              if (!match) throw Object.assign(Error('bad symbol line'), { fp, location, reg, line });
               
               return match[1];
               
@@ -83,7 +91,6 @@ import { testRunner, assertEqual } from '../build/utils.test.ts';
       
     };
     
-    const fp = dirname(fileURLToPath(import.meta.url));
     const fileDataArr = await Promise.all(
       [ 'sideEffects.d.ts', 'main.ts' ]
         .map(fd => readFile(join(fp, fd), 'utf8'))

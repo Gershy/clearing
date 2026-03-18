@@ -1,4 +1,5 @@
-import { skip, inCls, getCls, getClsName } from '@gershy/clearing';
+import '../src/main.ts';
+const { count, getCls, getClsName, has, inCls, limn, mod, skip, toArr } = clearing;
 
 export const cmpAny = Symbol('@gershy/test/cmp/any');
 

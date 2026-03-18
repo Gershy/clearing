@@ -1,86 +1,61 @@
-type ClsCheck = {
-  (i: unknown, num:    BooleanConstructor):  i is boolean,
-  (i: unknown, num:    NumberConstructor):   i is number,
-  (i: unknown, str:    StringConstructor):   i is string,
-  (i: unknown, buff:   Buffer):              i is Buffer,
-  (i: unknown, arr:    ArrayConstructor):    i is any[],
-  (i: unknown, obj:    ObjectConstructor):   i is Obj<unknown>,
-  (i: unknown, fn:     FunctionConstructor): i is Fn,
-  (i: unknown, fn:     SymbolConstructor):   i is symbol,
-  <T>(i: unknown, prm: PromiseConstructor):  i is Promise<T>,
-  <C extends abstract new (...args: any) => any>(i: unknown, cls: C): i is InstanceType<C>
-};
-export const getClsName = i => {
-  if (i === null)      return 'Null';
-  if (i === undefined) return 'Undef';
-  if (i !== i)         return 'Nan';
-  return Object.getPrototypeOf(i)?.constructor.name ?? 'Prototypeless';
-};
-export const getCls = i => Object.getPrototypeOf(i)?.constructor ?? null;
-export const isCls: ClsCheck = (i, C): i is any => {
-  
-  // NaN only matches against the NaN primitive (not the Number Form)
-  if (i !== i)   return C !== C;
-  
-  // `null` and `undefined` only match to themselves
-  if (i == null) return i === C;
-  
-  // Otherwise strictly check the constructor
-  return Object.getPrototypeOf(i).constructor === C;
-  
-};
-export const inCls: ClsCheck = (i, C): i is any => i instanceof C;
-export const skip = undefined;
-
-type Then = {
-  <V, R0 = V, R1 = never>(val: Promise<V>, rsv?: (v: V) => R0, rjc?: (e: any) => R1): Promise<R0 | R1>,
-  <V, R0 = V, R1 = never>(val: V,          rsv?: (v: V) => R0, rjc?: (e: any) => R1): R0 | R1;
-};
-export const then: Then = <V, R0 = V, R1 = never>(
-  val: Promise<V> | V,
-  rsv: (v: V) => R0 = (v => v as any),
-  rjc: (e: any) => R1 = ((e): any => { throw e; })
-): Promise<R0 | R1> | R0 | R1 => {
-  
-  // Act on `val` regardless of whether it's a Promise or immediate value; return `rsv(val)`
-  // either immediately or as a Promise
-  
-  if (inCls(val, Promise)) return val.then(rsv).catch(rjc);
-  
-  try        { return rsv(val); }
-  catch(err) { return rjc(err); }
-  
-};
-
-type Safe = {
-  <V, R0 = never>(fn: () => Promise<V>, rjc?: (e: any) => R0): Promise<V | R0>,
-  <V, R0 = never>(fn: () =>          V, rjc?: (e: any) => R0): Promise<V | R0>
-};
-export const safe: Safe = <V, R0 = never>(
-  fn:  () => Promise<V> | V,
-  rjc: ((e: any) => R0) = e => { throw e; }
-): Promise<V | R0> | V | R0 => {
-  
-  // Execute a function which returns a value either synchronously or asynchronously; in both cases
-  // allows errors occurring from function execution to be handled
-  
-  try        { return then(fn(), v => v, rjc); }
-  catch(err) { return rjc(err); }
-  
-};
-
 const applyClearing = (() => {
 
-  const global: any = globalThis;
-
   // Prevent multiple installations...
-  const pfx = '@gershy/clearing';
-  const memSym = Symbol.for(`${pfx}:mem`);
+  const global: any = globalThis;
+  const memSym = Symbol.for(`@gershy/clearing:mem`);
   if (global[memSym]) return;
   global[memSym] = true;
   
-  const [ enc, dec ] = [ new TextEncoder(), new TextDecoder() ];
+  const getClsName = i => {
+    if (i === null)      return 'Null';
+    if (i === undefined) return 'Undef';
+    if (i !== i)         return 'Nan';
+    return Object.getPrototypeOf(i)?.constructor.name ?? 'Prototypeless';
+  };
+  const getCls = i => Object.getPrototypeOf(i)?.constructor ?? null;
+  const isCls: ClsCheck = (i, C): i is any => {
+    
+    // NaN only matches against the NaN primitive (not the Number Form)
+    if (i !== i)   return C !== C;
+    
+    // `null` and `undefined` only match to themselves
+    if (i == null) return i === C;
+    
+    // Otherwise strictly check the constructor
+    return Object.getPrototypeOf(i).constructor === C;
+    
+  };
+  const inCls: ClsCheck = (i, C): i is any => i instanceof C;
+  const skip = undefined;
 
+  const then: Then = <V, R0 = V, R1 = never>(
+    val: Promise<V> | V,
+    rsv: (v: V) => R0 = (v => v as any),
+    rjc: (e: any) => R1 = ((e): any => { throw e; })
+  ): Promise<R0 | R1> | R0 | R1 => {
+    
+    // Act on `val` regardless of whether it's a Promise or immediate value; return `rsv(val)`
+    // either immediately or as a Promise
+    
+    if (inCls(val, Promise)) return val.then(rsv).catch(rjc);
+    
+    try        { return rsv(val); }
+    catch(err) { return rjc(err); }
+    
+  };
+  const safe: Safe = <V, R0 = never>(
+    fn:  () => Promise<V> | V,
+    rjc: ((e: any) => R0) = e => { throw e; }
+  ): Promise<V | R0> | V | R0 => {
+    
+    // Execute a function which returns a value either synchronously or asynchronously; in both cases
+    // allows errors occurring from function execution to be handled
+    
+    try        { return then(fn(), v => v, rjc); }
+    catch(err) { return rjc(err); }
+    
+  };
+  
   const symNames = [
     // <SYMBOLS> :: definitions :: /[']([a-zA-Z0-9]+)[']/
     'add',
@@ -94,13 +69,11 @@ const applyClearing = (() => {
     'base64Std',
     'base64Url',
     'baseline',
-    'bind',
     'char',
     'charset',
     'code',
     'count',
     'cut',
-    'dive',
     'empty',
     'find',
     'fire',
@@ -133,17 +106,70 @@ const applyClearing = (() => {
     'upper'
     // </SYMBOLS>
   ] as const;
-  const syms = Object.fromEntries(symNames.map(term => [ term, Symbol(`${pfx}:${term}`) ]));
+  Object.assign(global, {
+    clearing: {
+      getClsName, getCls, isCls, inCls, then, safe, skip,
+      ...Object.fromEntries(symNames.map(term => [ term, Symbol(`@gershy/clearing:${term}`) ]))
+    }
+  });
   
-  Object.assign(global, { ...syms });
+  const {
+    // <SYMBOLS> :: variables :: /([a-zA-Z0-9]+)/
+    add,
+    allArr,
+    allObj,
+    at,
+    assert,
+    base32,
+    base36,
+    base62,
+    base64Std,
+    base64Url,
+    baseline,
+    char,
+    charset,
+    code,
+    count,
+    cut,
+    empty,
+    find,
+    fire,
+    group,
+    has,
+    hasHead,
+    hasTail,
+    indent,
+    int32,
+    int64,
+    isInt,
+    later,
+    limn,
+    lower,
+    map,
+    mapk,
+    merge,
+    mod,
+    padHead,
+    padTail,
+    rem,
+    slash,
+    slice,
+    suppress,
+    toArr,
+    toBin,
+    toNum,
+    toObj,
+    toStr,
+    upper,
+    // </SYMBOLS>
+  } = global.clearing as typeof clearing;
   
   const assignSyms = (Cls: any, def: any) => {
     
     const protoVals: [ symbol, any ][] = [];
-    for (const key of Reflect.ownKeys(def)) {
+    for (const key of Reflect.ownKeys(def))
       if (!isCls(key, Symbol)) throw Object.assign(Error('invalid proto key'), { Cls, keyClsName: getClsName(key), key });
-      protoVals.push([ key, def[key] ]);
-    }
+      else                     protoVals.push([ key, def[key] ]);
     
     // Assign class properties
     for (const [ sym, value ] of protoVals)
@@ -282,6 +308,7 @@ const applyClearing = (() => {
     
   });
   
+  const [ enc, dec ] = [ new TextEncoder(), new TextDecoder() ];
   assignSyms(String, {
     [baseline]: (str, seq='| ') => {
       
@@ -471,8 +498,8 @@ const applyClearing = (() => {
       return {
         form: getClsName(this),
         msg: message,
-        trace: stack?.split('\n').slice(1)[map](v => v.trim() ?? skip) ?? [],
-        ...props,
+        trace: (stack ?? '<no stack>').split('\n')[map](v => v.trim() ?? skip),
+        ...props as any,
         cause: !cause ? null : cause[limn](seen)
       };
     },
