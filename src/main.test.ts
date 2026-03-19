@@ -3,8 +3,58 @@ import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { testRunner, assertEqual } from '../build/utils.test.ts';
+// const { add, allArr, allObj, at, assert, base62, base64Std, base64Url, baseline, char, charset, code, count, cut, empty, find, fire, group, has, hasHead, hasTail, indent } = clearing;
+// const { int32, int64, isInt, later, limn, lower, map, mapk, merge, mod, padHead, padTail, rem, slash, slice, suppress, toArr, toBin, toNum, toObj, toStr, upper } = clearing;
 
-const { add, allArr, allObj, at, assert, base62, base64Std, base64Url, baseline, char, charset, code, count, cut, empty, find, fire, group, has, hasHead, hasTail, indent, int32, int64, isInt, later, limn, lower, map, mapk, merge, mod, padHead, padTail, rem, slash, slice, suppress, toArr, toBin, toNum, toObj, toStr, upper } = clearing;
+// <SYMBOLS> :: testDefs :: /const[ ]([a-zA-Z0-9]+)[:]/
+const add:       typeof clearing.add       = clearing.add;
+const allArr:    typeof clearing.allArr    = clearing.allArr;
+const allObj:    typeof clearing.allObj    = clearing.allObj;
+const at:        typeof clearing.at        = clearing.at;
+const assert:    typeof clearing.assert    = clearing.assert;
+const base32:    typeof clearing.base32    = clearing.base32;
+const base36:    typeof clearing.base36    = clearing.base36;
+const base62:    typeof clearing.base62    = clearing.base62;
+const base64Std: typeof clearing.base64Std = clearing.base64Std;
+const base64Url: typeof clearing.base64Url = clearing.base64Url;
+const baseline:  typeof clearing.baseline  = clearing.baseline;
+const char:      typeof clearing.char      = clearing.char;
+const charset:   typeof clearing.charset   = clearing.charset;
+const code:      typeof clearing.code      = clearing.code;
+const count:     typeof clearing.count     = clearing.count;
+const cut:       typeof clearing.cut       = clearing.cut;
+const empty:     typeof clearing.empty     = clearing.empty;
+const find:      typeof clearing.find      = clearing.find;
+const fire:      typeof clearing.fire      = clearing.fire;
+const group:     typeof clearing.group     = clearing.group;
+const has:       typeof clearing.has       = clearing.has;
+const hasHead:   typeof clearing.hasHead   = clearing.hasHead;
+const hasTail:   typeof clearing.hasTail   = clearing.hasTail;
+const indent:    typeof clearing.indent    = clearing.indent;
+const int32:     typeof clearing.int32     = clearing.int32;
+const int64:     typeof clearing.int64     = clearing.int64;
+const isInt:     typeof clearing.isInt     = clearing.isInt;
+const later:     typeof clearing.later     = clearing.later;
+const limn:      typeof clearing.limn      = clearing.limn;
+const lower:     typeof clearing.lower     = clearing.lower;
+const map:       typeof clearing.map       = clearing.map;
+const mapk:      typeof clearing.mapk      = clearing.mapk;
+const merge:     typeof clearing.merge     = clearing.merge;
+const mod:       typeof clearing.mod       = clearing.mod;
+const padHead:   typeof clearing.padHead   = clearing.padHead;
+const padTail:   typeof clearing.padTail   = clearing.padTail;
+const rem:       typeof clearing.rem       = clearing.rem;
+const slash:     typeof clearing.slash     = clearing.slash;
+const slice:     typeof clearing.slice     = clearing.slice;
+const suppress:  typeof clearing.suppress  = clearing.suppress;
+const toArr:     typeof clearing.toArr     = clearing.toArr;
+const toBin:     typeof clearing.toBin     = clearing.toBin;
+const toNum:     typeof clearing.toNum     = clearing.toNum;
+const toObj:     typeof clearing.toObj     = clearing.toObj;
+const toStr:     typeof clearing.toStr     = clearing.toStr;
+const upper:     typeof clearing.upper     = clearing.upper;
+const walk:      typeof clearing.walk      = clearing.walk;
+// </SYMBOLS>
 
 // Type testing
 (async () => {
@@ -43,6 +93,11 @@ const { add, allArr, allObj, at, assert, base62, base64Std, base64Url, baseline,
       'def' | 'z'
     >,
     
+    7: Enforce<
+      Dive<{ [K in 'a' | 'b']: 'z' }, [ 'a' ], 'def'>,
+      'z'
+    >,
+    
   };
   
 })();
@@ -58,8 +113,8 @@ const { add, allArr, allObj, at, assert, base62, base64Std, base64Url, baseline,
       let lines = str.split('\n');
       while (true) {
         
-        const ind0 = lines.findIndex(ln => ln.includes('<SYMBOLS>'));
-        const ind1 = lines.findIndex(ln => ln.includes('</SYMBOLS>'));
+        const ind0 = lines.findIndex(ln => ln.includes('<SYM' + 'BOLS>'));
+        const ind1 = lines.findIndex(ln => ln.includes('</SYM' + 'BOLS>'));
         
         if (ind0 === -1) break;
         
@@ -119,6 +174,29 @@ const { add, allArr, allObj, at, assert, base62, base64Std, base64Url, baseline,
 
 testRunner([
   
+  { name: 'Object.prototype[at]', fn: async () => {
+    
+    const obj0: Obj<number> = { a: 1, b: 2 };
+    assertEqual(obj0[at]('a'), 1);
+    
+    const obj1 = ({ a: 1, b: 2 } as Obj<number>)
+      [map](v => v * 2);
+    
+    const obj2 = ({ a: 1, b: 2 } as Obj<number>)
+      [map](v => v * 2)
+      [map](v => v * 2);
+    
+    const obj3 = ({ a: 1, b: 2 } as Obj<number>)
+      [map](v => v * 2)
+      [map](v => v * 2)
+      [map](v => v * 2);
+    
+    const obj4 = ({ a: 1, b: 2 } as Obj<number>)
+      [mapk]((v, k) => [ k.repeat(3), v * 2 ])
+      [mapk]((v, k) => [ k.repeat(3), v * 2 ])
+      [map]((v, k) => ({ v, str: k.repeat(v) }));
+    
+  }},
   { name: 'Object.prototype[at]', fn: async () => {
     
     const obj0 = { a: { b: { c: 'z' } } };
@@ -194,7 +272,7 @@ testRunner([
   { name: 'Object.prototype[Symbol.iterator]', fn: async () => {
     const obj = { a: 1, b: 2 };
     const entries: [string, number][] = [];
-    for (const [ key, val ] of obj as any as ObjIterator<typeof obj>) entries.push([ key, val ]);
+    for (const [ key, val ] of obj[walk]()) entries.push([ key, val ]);
     assertEqual(
       entries,
       [ [ 'a', 1 ], [ 'b', 2 ] ]
@@ -346,6 +424,7 @@ testRunner([
     
     const examples = [ '', 'z', '?', '\ufff1', '\u0f0f\uf0f0\uff00\u00ff', 'Testy man!' ];
     for (const str of examples)
+    // TODO: HEEERE
       assertEqual(str[toBin]().buffer[toStr](), str);
     
   }},

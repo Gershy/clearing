@@ -2,9 +2,8 @@ const applyClearing = (() => {
 
   // Prevent multiple installations...
   const global: any = globalThis;
-  const memSym = Symbol.for(`@gershy/clearing:mem`);
-  if (global[memSym]) return;
-  global[memSym] = true;
+  if (global[Symbol.for(`@gershy/clearing:mem`)]) return;
+  global[Symbol.for(`@gershy/clearing:mem`)] = true;
   
   const getClsName = i => {
     if (i === null)      return 'Null';
@@ -13,7 +12,7 @@ const applyClearing = (() => {
     return Object.getPrototypeOf(i)?.constructor.name ?? 'Prototypeless';
   };
   const getCls = i => Object.getPrototypeOf(i)?.constructor ?? null;
-  const isCls: ClsCheck = (i, C): i is any => {
+  const isCls: typeof clearing.isCls = (i, C): i is any => {
     
     // NaN only matches against the NaN primitive (not the Number Form)
     if (i !== i)   return C !== C;
@@ -25,10 +24,10 @@ const applyClearing = (() => {
     return Object.getPrototypeOf(i).constructor === C;
     
   };
-  const inCls: ClsCheck = (i, C): i is any => i instanceof C;
+  const inCls: typeof clearing.inCls = (i, C): i is any => i instanceof C;
   const skip = undefined;
 
-  const then: Then = <V, R0 = V, R1 = never>(
+  const then: typeof clearing.then = <V, R0 = V, R1 = never>(
     val: Promise<V> | V,
     rsv: (v: V) => R0 = (v => v as any),
     rjc: (e: any) => R1 = ((e): any => { throw e; })
@@ -43,7 +42,7 @@ const applyClearing = (() => {
     catch(err) { return rjc(err); }
     
   };
-  const safe: Safe = <V, R0 = never>(
+  const safe: typeof clearing.safe = <V, R0 = never>(
     fn:  () => Promise<V> | V,
     rjc: ((e: any) => R0) = e => { throw e; }
   ): Promise<V | R0> | V | R0 => {
@@ -57,7 +56,7 @@ const applyClearing = (() => {
   };
   
   const symNames = [
-    // <SYMBOLS> :: definitions :: /[']([a-zA-Z0-9]+)[']/
+    // <SYMBOLS> :: runtimeNames :: /[']([a-zA-Z0-9]+)[']/
     'add',
     'allArr',
     'allObj',
@@ -103,66 +102,65 @@ const applyClearing = (() => {
     'toNum',
     'toObj',
     'toStr',
-    'upper'
+    'upper',
+    'walk'
     // </SYMBOLS>
   ] as const;
-  Object.assign(global, {
-    clearing: {
-      getClsName, getCls, isCls, inCls, then, safe, skip,
-      ...Object.fromEntries(symNames.map(term => [ term, Symbol(`@gershy/clearing:${term}`) ]))
-    }
-  });
+  const cl = {
+    getClsName, getCls, isCls, inCls, then, safe, skip,
+    ...Object.fromEntries(symNames.map(term => [ term, Symbol(`@gershy/clearing:${term}`) ]))
+  };
+  Object.assign(global, { cl, clearing: cl });
   
-  const {
-    // <SYMBOLS> :: variables :: /([a-zA-Z0-9]+)/
-    add,
-    allArr,
-    allObj,
-    at,
-    assert,
-    base32,
-    base36,
-    base62,
-    base64Std,
-    base64Url,
-    baseline,
-    char,
-    charset,
-    code,
-    count,
-    cut,
-    empty,
-    find,
-    fire,
-    group,
-    has,
-    hasHead,
-    hasTail,
-    indent,
-    int32,
-    int64,
-    isInt,
-    later,
-    limn,
-    lower,
-    map,
-    mapk,
-    merge,
-    mod,
-    padHead,
-    padTail,
-    rem,
-    slash,
-    slice,
-    suppress,
-    toArr,
-    toBin,
-    toNum,
-    toObj,
-    toStr,
-    upper,
-    // </SYMBOLS>
-  } = global.clearing as typeof clearing;
+  // <SYMBOLS> :: runtimeRefs :: /^[ ]*const[ ]([a-zA-Z0-9]+)[:]/
+  const add:       typeof clearing.add       = clearing.add;
+  const allArr:    typeof clearing.allArr    = clearing.allArr;
+  const allObj:    typeof clearing.allObj    = clearing.allObj;
+  const at:        typeof clearing.at        = clearing.at;
+  const assert:    typeof clearing.assert    = clearing.assert;
+  const base32:    typeof clearing.base32    = clearing.base32;
+  const base36:    typeof clearing.base36    = clearing.base36;
+  const base62:    typeof clearing.base62    = clearing.base62;
+  const base64Std: typeof clearing.base64Std = clearing.base64Std;
+  const base64Url: typeof clearing.base64Url = clearing.base64Url;
+  const baseline:  typeof clearing.baseline  = clearing.baseline;
+  const char:      typeof clearing.char      = clearing.char;
+  const charset:   typeof clearing.charset   = clearing.charset;
+  const code:      typeof clearing.code      = clearing.code;
+  const count:     typeof clearing.count     = clearing.count;
+  const cut:       typeof clearing.cut       = clearing.cut;
+  const empty:     typeof clearing.empty     = clearing.empty;
+  const find:      typeof clearing.find      = clearing.find;
+  const fire:      typeof clearing.fire      = clearing.fire;
+  const group:     typeof clearing.group     = clearing.group;
+  const has:       typeof clearing.has       = clearing.has;
+  const hasHead:   typeof clearing.hasHead   = clearing.hasHead;
+  const hasTail:   typeof clearing.hasTail   = clearing.hasTail;
+  const indent:    typeof clearing.indent    = clearing.indent;
+  const int32:     typeof clearing.int32     = clearing.int32;
+  const int64:     typeof clearing.int64     = clearing.int64;
+  const isInt:     typeof clearing.isInt     = clearing.isInt;
+  const later:     typeof clearing.later     = clearing.later;
+  const limn:      typeof clearing.limn      = clearing.limn;
+  const lower:     typeof clearing.lower     = clearing.lower;
+  const map:       typeof clearing.map       = clearing.map;
+  const mapk:      typeof clearing.mapk      = clearing.mapk;
+  const merge:     typeof clearing.merge     = clearing.merge;
+  const mod:       typeof clearing.mod       = clearing.mod;
+  const padHead:   typeof clearing.padHead   = clearing.padHead;
+  const padTail:   typeof clearing.padTail   = clearing.padTail;
+  const rem:       typeof clearing.rem       = clearing.rem;
+  const slash:     typeof clearing.slash     = clearing.slash;
+  const slice:     typeof clearing.slice     = clearing.slice;
+  const suppress:  typeof clearing.suppress  = clearing.suppress;
+  const toArr:     typeof clearing.toArr     = clearing.toArr;
+  const toBin:     typeof clearing.toBin     = clearing.toBin;
+  const toNum:     typeof clearing.toNum     = clearing.toNum;
+  const toObj:     typeof clearing.toObj     = clearing.toObj;
+  const toStr:     typeof clearing.toStr     = clearing.toStr;
+  const upper:     typeof clearing.upper     = clearing.upper;
+  const walk:      typeof clearing.walk      = clearing.walk;
+  // </SYMBOLS>
   
   const assignSyms = (Cls: any, def: any) => {
     
@@ -201,7 +199,7 @@ const applyClearing = (() => {
       //  >> { small: { a: 1, b: 2, c: 3 }, medium: { d: 4, e: 5, f: 6, g: 7 }, big: { h: 8, i: 9, j: 10 } }
       
       const ret = {};
-      for (const [ k, v ] of this) {
+      for (const [ k, v ] of this[walk]()) {
         const g = fn(v, k);
         if (g === skip) continue;
         if (!ret[has](g)) ret[g] = {};
@@ -221,8 +219,8 @@ const applyClearing = (() => {
       for (const k in this) { const r = fn(this[k], k); if (r !== skip) arr.push(r); }
       return Object.fromEntries(arr);
     },
-    [merge](this: Obj, o) { // Modifies `this` in-place
-      for (const [ k, v ] of o) {
+    [merge](this: Obj, obj) { // Modifies `this` in-place
+      for (const [ k, v ] of obj[walk]()) {
         // `skip` can be passed to remove properties
         if (v === skip) { delete this[k]; continue; }
         
@@ -257,7 +255,7 @@ const applyClearing = (() => {
       return ret;
     },
     
-    * [Symbol.iterator](this: Obj) { for (const k in this) yield [ k, this[k] ]; }
+    * [walk](this: Obj) { for (const k in this) yield [ k, this[k] ]; }
     
   });
   
@@ -453,6 +451,11 @@ const applyClearing = (() => {
     [toStr]() { return dec.decode(this); },
     [toNum]() { return (new Uint8Array(this))[toNum](); }
   });
+  assignSyms(SharedArrayBuffer, {});
+  assignSyms(SharedArrayBuffer.prototype, {
+    [toStr]() { return dec.decode(new Uint8Array(this as SharedArrayBuffer)); },
+    [toNum]() { return (new Uint8Array(this))[toNum](); }
+  });
   
   assignSyms(Uint8Array, {});
   assignSyms(Uint8Array.prototype, {
@@ -490,7 +493,7 @@ const applyClearing = (() => {
   assignSyms(Error.prototype, {
     
     [fire](this: Error, props /* { cause, msg, message, ...more } */) { throw this[mod](props); },
-    [limn](this: Error, seen = new Map()): ReturnType<Error[typeof limn]> {
+    [limn](this: Error, seen = new Map()): ReturnType<Error[typeof clearing.limn]> {
       if (seen.has(this)) return seen.get(this);
       seen.set(this, 'cycle(Error)');
       
