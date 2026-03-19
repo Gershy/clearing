@@ -137,6 +137,8 @@ declare global {
     
   };
   
+  const cl = clearing;
+  
   // Util
   type Obj<V = any> = { [K in string]: V };
   type Arr<V = any> = V[];
