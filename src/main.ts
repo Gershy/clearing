@@ -1,5 +1,5 @@
 const applyClearing = (() => {
-
+  
   // Prevent multiple installations...
   const global: any = globalThis;
   if (global[Symbol.for(`@gershy/clearing:mem`)]) return;
@@ -26,7 +26,7 @@ const applyClearing = (() => {
   };
   const inCls: typeof clearing.inCls = (i, C): i is any => i instanceof C;
   const skip = undefined;
-
+  
   const then: typeof clearing.then = <V, R0 = V, R1 = never>(
     val: Promise<V> | V,
     rsv: (v: V) => R0 = (v => v as any),

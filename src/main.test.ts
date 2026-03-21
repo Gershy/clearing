@@ -174,7 +174,7 @@ const walk:      typeof cl.walk      = cl.walk;
 
 testRunner([
   
-  { name: 'Object.prototype[at]', fn: async () => {
+  { name: 'Typing sanity', fn: async () => {
     
     const obj0: Obj<number> = { a: 1, b: 2 };
     assertEqual(obj0[at]('a'), 1);
@@ -195,6 +195,12 @@ testRunner([
       [mapk]((v, k) => [ k.repeat(3), v * 2 ])
       [mapk]((v, k) => [ k.repeat(3), v * 2 ])
       [map]((v, k) => ({ v, str: k.repeat(v) }));
+    
+    const v6 = [ 'a', 'b', 'c' ] as const;
+    v6[toObj](v => [ v, v.repeat(3) ] as const);
+    
+    const v7 = [ 'a', 'b', 'c' ];
+    v7[toObj](v => [ v, v.repeat(3) ] as const);
     
   }},
   { name: 'Object.prototype[at]', fn: async () => {

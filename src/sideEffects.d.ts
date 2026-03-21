@@ -241,17 +241,19 @@ declare global {
   }
   
   interface ArrayConstructor {}
-  interface Array<T> extends SymbolsProto {
-    [clearing.has]: (val: unknown) => boolean,
-    [clearing.map]: <Fn extends (v: T, i: number) => any>(fn: Fn) => Exclude<ReturnType<Fn>, Skip>[],
-    [clearing.add]: <TT extends T>(val: TT) => TT,
-    [clearing.rem]: <TT extends T>(val: TT) => void,
+  interface ArrayProto<T> extends SymbolsProto {
+    [clearing.has]:   (val: unknown) => boolean,
+    [clearing.map]:   <Fn extends (v: T, i: number) => any>(fn: Fn) => Exclude<ReturnType<Fn>, Skip>[],
+    [clearing.add]:   <TT extends T>(val: TT) => TT,
+    [clearing.rem]:   <TT extends T>(val: TT) => void,
     [clearing.count]: () => number,
     [clearing.empty]: () => boolean,
     [clearing.toObj]: <R extends readonly [string, any]>(fn: (v: T, n: number) => Skip | R) => { [K in R[0]]: R[1] },
-    [clearing.find]: (fn: (val: T, n: number) => any) => ({ found: true, val: T, ind: number } | { found: false, val: null, ind: null }),
+    [clearing.find]:  (fn: (val: T, n: number) => any) => ({ found: true, val: T, ind: number } | { found: false, val: null, ind: null }),
     [clearing.group]: <G extends string>(fn: (v: T, i: number) => Skip | G) => { [K in G]?: T[] }
   }
+  interface Array<T> extends ArrayProto<T> {}
+  interface ReadonlyArray<T> extends ArrayProto<T> {}
   
   interface NumberConstructor {
     [clearing.int32]: number,
