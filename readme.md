@@ -784,6 +784,16 @@ setTimeout(() => p.resolve('done!'), 1000);
 console.log(await p); // 'done!'
 ```
 
+### `Promise.prototype[cl.toArr]`
+
+Creates a promise with externally accessible `resolve` and `reject` functions.
+
+```ts
+const prm = Promise.resolve([ 1, 2, 3 ]);
+const vals = await prm[cl.toArr](v => 'a'.repeat(v));
+console.log(vals); // [ 'a', 'aa', 'aaa' ]
+```
+
 ## `Set.prototype` extensions
 
 ### `Set.prototype[cl.count]`
