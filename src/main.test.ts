@@ -3,8 +3,6 @@ import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { testRunner, assertEqual } from '../build/utils.test.ts';
-// const { add, allArr, allObj, at, assert, base62, base64Std, base64Url, baseline, char, charset, code, count, cut, empty, find, fire, group, has, hasHead, hasTail, indent } = clearing;
-// const { int32, int64, isInt, later, limn, lower, map, mapk, merge, mod, padHead, padTail, rem, slash, slice, suppress, toArr, toBin, toNum, toObj, toStr, upper } = clearing;
 
 // <SYMBOLS> :: testDefs :: /const[ ]([a-zA-Z0-9]+)[:]/
 const add:       typeof cl.add       = cl.add;
@@ -12,10 +10,10 @@ const allArr:    typeof cl.allArr    = cl.allArr;
 const allObj:    typeof cl.allObj    = cl.allObj;
 const at:        typeof cl.at        = cl.at;
 const assert:    typeof cl.assert    = cl.assert;
-const base32:    typeof cl.base32    = cl.base32;
-const base36:    typeof cl.base36    = cl.base36;
+// const base32:    typeof cl.base32    = cl.base32; // TODO: Add tests for commented-out values...
+// const base36:    typeof cl.base36    = cl.base36;
 const base62:    typeof cl.base62    = cl.base62;
-const base64Std: typeof cl.base64Std = cl.base64Std;
+// const base64Std: typeof cl.base64Std = cl.base64Std;
 const base64Url: typeof cl.base64Url = cl.base64Url;
 const baseline:  typeof cl.baseline  = cl.baseline;
 const char:      typeof cl.char      = cl.char;
@@ -96,13 +94,14 @@ const walk:      typeof cl.walk      = cl.walk;
     7: Enforce<
       Dive<{ [K in 'a' | 'b']: 'z' }, [ 'a' ], 'def'>,
       'z'
-    >,
+    >
     
   };
+  if (0) ((v?: Tests) => void 0)();
   
 })();
 
-// Enforce symbol alignment for sideEffects.d.ts vs main.ts - typescript doesn't seem up to it!
+// Enforce symbol alignment for global.d.ts vs main.ts - typescript doesn't seem up to it!
 (async () => {
   
   await (async () => {
@@ -147,7 +146,7 @@ const walk:      typeof cl.walk      = cl.walk;
     };
     
     const fileDataArr = await Promise.all(
-      [ 'sideEffects.d.ts', 'main.ts' ]
+      [ 'global.d.ts', 'main.ts' ]
         .map(fd => readFile(join(fp, fd), 'utf8'))
     );
     const symSets = fileDataArr.map(fileData => [ ...getSymbolSets(fileData) ]).flat(1);
@@ -195,6 +194,8 @@ testRunner([
       [mapk]((v, k) => [ k.repeat(3), v * 2 ])
       [mapk]((v, k) => [ k.repeat(3), v * 2 ])
       [map]((v, k) => ({ v, str: k.repeat(v) }));
+    
+    if (0) ((v = [ obj1, obj2, obj3, obj4 ]) => void 0)();
     
     const v6 = [ 'a', 'b', 'c' ] as const;
     v6[toObj](v => [ v, v.repeat(3) ] as const);
@@ -353,11 +354,27 @@ testRunner([
     if (''[count]() !== 0) throw Error('failed');
   }},
   { name: 'String.prototype[cut]', fn: async () => {
-    const result = 'a:b:c:d'[cut](':');
-    if (result[0] !== 'a' || result[1] !== 'b:c:d') throw Error('failed');
+    assertEqual(
+      'a:b:c:d'[cut](':'),
+      [ 'a', 'b:c:d' ]
+    );
     
-    const result2 = 'a:b:c:d'[cut](':', 2);
-    if (result2[0] !== 'a' || result2[1] !== 'b' || result2[2] !== 'c:d') throw Error('failed 2');
+    assertEqual(
+      'a:b:c:d'[cut](':', 1),
+      [ 'a', 'b:c:d' ]
+    );
+    
+    assertEqual(
+      'a:b:c:d'[cut](':', 2),
+      [ 'a', 'b', 'c:d' ]
+    );
+  }},
+  { name: 'String.prototype[cut] typing', fn: async () => {
+    
+    const val1: [ string, string ] = 'a:b'[cut](':', 1);
+    const val2: [ string, string ] = 'a:b'[cut](':', 1)[map](v => v) as [ string, string ]; // TODO: Can `map` preserve readonly array length? Ugh but what about `skip`??
+    assertEqual(val1, val2);
+    
   }},
   { name: 'String.prototype[has]', fn: async () => {
     if (!'hello world'[has]('world')) throw Error('failed');
@@ -430,7 +447,6 @@ testRunner([
     
     const examples = [ '', 'z', '?', '\ufff1', '\u0f0f\uf0f0\uff00\u00ff', 'Testy man!' ];
     for (const str of examples)
-    // TODO: HEEERE
       assertEqual(str[toBin]().buffer[toStr](), str);
     
   }},
@@ -525,6 +541,13 @@ testRunner([
     const result = await p;
     if (result !== 'done') throw Error('failed');
   }},
+  { name: 'Promise.prototype[toArr]', fn: async () => {
+    
+    const prm = Promise.resolve([ 1, 2, 3]).then(v => v);
+    const vals = await prm[toArr](n => 'a'.repeat(n));
+    assertEqual(vals, [ 'a', 'aa', 'aaa' ]);
+    
+  }},
   
   { name: 'Set.prototype[count]', fn: async () => {
     if (new Set([ 1, 2, 3 ])[count]() !== 3) throw Error('failed');
@@ -591,6 +614,40 @@ testRunner([
     const m = new Map([ [ 'a', 1 ], [ 'b', 2 ] ]);
     const obj = m[toObj]((v, k) => [ k, v * 100 ]);
     assertEqual(obj, { a: 100, b: 200 });
-  }}
+  }},
+  
+  { name: 'Generator.prototype[toArr]', fn: async () => {
+    
+    const genFn0 = function*() {
+      yield 1;
+      yield 2;
+      yield 3;
+    };
+    const genFn = function*(): Generator<number, any, any> { yield* genFn0(); }
+    
+    const vals = genFn()[toArr](v => 'a'.repeat(v));
+    assertEqual(vals, [ 'a', 'aa', 'aaa' ]);
+    
+  }},
+  
+  { name: 'AsyncGenerator.prototype[toArr]', fn: async () => {
+    
+    const genFn0 = async function*() {
+      
+      await Promise.resolve(0);
+      
+      yield Promise.resolve(1);
+      yield Promise.resolve(2);
+      yield await Promise.resolve(3);
+      
+      await Promise.resolve(4);
+      
+    };
+    const genFn = async function*() { yield* genFn0(); }
+    
+    const vals = await genFn()[toArr](v => 'a'.repeat(v));
+    assertEqual(vals, [ 'a', 'aa', 'aaa' ]);
+    
+  }},
   
 ]);

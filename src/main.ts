@@ -1,3 +1,5 @@
+import './global.d.ts';
+
 const applyClearing = (() => {
   
   // Prevent multiple installations...
@@ -29,29 +31,29 @@ const applyClearing = (() => {
   
   const then: typeof clearing.then = <V, R0 = V, R1 = never>(
     val: Promise<V> | V,
-    rsv: (v: V) => R0 = (v => v as any),
+    rsv: (v: V)   => R0 = (v => v as any),
     rjc: (e: any) => R1 = ((e): any => { throw e; })
-  ): Promise<R0 | R1> | R0 | R1 => {
+  ) => {
     
     // Act on `val` regardless of whether it's a Promise or immediate value; return `rsv(val)`
     // either immediately or as a Promise
     
-    if (inCls(val, Promise)) return val.then(rsv).catch(rjc);
+    if (inCls(val, Promise)) return (val as Promise<V>).then(rsv).catch(rjc);
     
-    try        { return rsv(val); }
+    try        { return rsv(val as V); }
     catch(err) { return rjc(err); }
     
   };
   const safe: typeof clearing.safe = <V, R0 = never>(
-    fn:  () => Promise<V> | V,
-    rjc: ((e: any) => R0) = e => { throw e; }
-  ): Promise<V | R0> | V | R0 => {
+    fn:  ()        => Promise<V> | V,
+    rjc: ((e: any) => R0)             = e => { throw e; }
+  ) => {
     
     // Execute a function which returns a value either synchronously or asynchronously; in both cases
     // allows errors occurring from function execution to be handled
     
     try        { return then(fn(), v => v, rjc); }
-    catch(err) { return rjc(err); }
+    catch(err) { return rjc(err); /* handles synchronous throws from `fn` */ }
     
   };
   
@@ -187,8 +189,8 @@ const applyClearing = (() => {
       }
       return ptr;
     },
-    [count](this: Obj) { let c = 0; for (const k in this) c++; return c; },
-    [empty](this: Obj) { for (const k in this) return false; return true; },
+    [count](this: Obj) { let c = 0; for (const _ in this) c++; return c; },
+    [empty](this: Obj) { for (const _ in this) return false; return true; },
     [group](this: Obj, fn: (v: any, key: string) => string) { // Iterator: (val, key) => '<groupTerm>'
       
       //  { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10 }.group(n => {
@@ -366,7 +368,7 @@ const applyClearing = (() => {
       if (!this) return this; // No-op on empty String (otherwise it would transform a 0-line string to a 1-line string)
       let indentStr: string;
       if (isCls(args[0], String)) { indentStr = args[0]; }
-      else                         { const [ amt=2, char=' ' ] = args; indentStr = char.repeat(amt); }
+      else                        { const [ amt=2, char=' ' ] = args; indentStr = char.repeat(amt); }
       return this.split('\n')[map](ln => `${indentStr}${ln}`).join('\n');
       
     },
@@ -555,7 +557,16 @@ const applyClearing = (() => {
     }
     
   });
-  assignSyms(Promise.prototype, {});
+  assignSyms(Promise.prototype, {
+    async [toArr](this: Promise<Iterable<any> | AsyncIterable<any>>, fn: (v: any) => any) {
+      const r: any[] = [];
+      for await (const v of await this) {
+        const vv = fn(v);
+        if (vv !== skip) r.push(vv);
+      }
+      return r;
+    }
+  });
   
   assignSyms(Set, {});
   assignSyms(Set.prototype, {
@@ -614,6 +625,32 @@ const applyClearing = (() => {
       return Object.fromEntries(ret);
     }
     
+  });
+  
+  const Generator = (function*(){})().constructor;
+  assignSyms(Generator, {});
+  assignSyms(Generator.prototype, {
+    [toArr](this: Generator, fn: (v: any) => any) {
+      const r: any[] = [];
+      for (const v of this) {
+        const vv = fn(v);
+        if (vv !== skip) r.push(vv);
+      }
+      return r;
+    }
+  });
+  
+  const AsyncGenerator = (async function*(){})().constructor; // Async function's return value is an *immediately-availabe* async iterator - not a Promise!!
+  assignSyms(AsyncGenerator, {});
+  assignSyms(AsyncGenerator.prototype, {
+    async [toArr](this: AsyncGenerator, fn: (v: any) => any) {
+      const r: any[] = [];
+      for await (const v of this) {
+        const vv = fn(v);
+        if (vv !== skip) r.push(vv);
+      }
+      return r;
+    }
   });
   
 });

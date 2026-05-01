@@ -1,5 +1,3 @@
-// TODO: HEEERE add "iterate" or "walk" symbol for typed iteration
-
 // <SYMBOLS> :: consts :: /declare[ ]const[ ]([a-zA-Z0-9]+)[:]/
 declare const add:       unique symbol;
 declare const allArr:    unique symbol;
@@ -60,12 +58,15 @@ declare global {
     getClsName: (v: any) => string,
     getCls:     (v: any) => any,
     then: {
-      <V, R0 = V, R1 = never>(val: Promise<V>, rsv?: (v: V) => R0, rjc?: (e: any) => R1): Promise<R0 | R1>,
-      <V, R0 = V, R1 = never>(val: V,          rsv?: (v: V) => R0, rjc?: (e: any) => R1): R0 | R1;
+      // <V, R0 = V, R1 = never>(val: Promise<V>, rsv?: (v: V) => R0, rjc?: (e: any) => R1): Promise<R0 | R1>,
+      // <V, R0 = V, R1 = never>(val: V,          rsv?: (v: V) => R0, rjc?: (e: any) => R1): R0 | R1;
+      
+      <V, R0 = V, R1 = never>(val: Promise<V>, rsv?: (v: V) => Promise<R0> | R0, rjc?: (e: any) => Promise<R1> | R1): Promise<R0 | R1>,
+      <V, R0 = V, R1 = never>(val:         V , rsv?: (v: V) =>               R0, rjc?: (e: any) =>               R1):         R0 | R1
     },
     safe: {
-      <V, R0 = never>(fn: () => Promise<V>, rjc?: (e: any) => R0): Promise<V | R0>,
-      <V, R0 = never>(fn: () =>          V, rjc?: (e: any) => R0): Promise<V | R0>
+      <V, R0 = never>(fn: () => Promise<V>, rjc?: (e: any) => Promise<R0> | R0): Promise<V | R0>,
+      <V, R0 = never>(fn: () =>         V , rjc?: (e: any) =>               R0): V | R0
     }
     
   } & {
@@ -243,7 +244,7 @@ declare global {
   interface ArrayConstructor {}
   interface ArrayProto<T> extends SymbolsProto {
     [clearing.has]:   (val: unknown) => boolean,
-    [clearing.map]:   <Fn extends (v: T, i: number) => any>(fn: Fn) => Exclude<ReturnType<Fn>, Skip>[],
+    [clearing.map]:   <R>(fn: (v: T, i: number) => Skip | R) => R[],
     [clearing.add]:   <TT extends T>(val: TT) => TT,
     [clearing.rem]:   <TT extends T>(val: TT) => void,
     [clearing.count]: () => number,
@@ -253,7 +254,8 @@ declare global {
     [clearing.group]: <G extends string>(fn: (v: T, i: number) => Skip | G) => { [K in G]?: T[] }
   }
   interface Array<T> extends ArrayProto<T> {}
-  interface ReadonlyArray<T> extends ArrayProto<T> {}
+  interface ReadonlyArray<T> extends ArrayProto<T> {
+  }
   
   interface NumberConstructor {
     [clearing.int32]: number,
@@ -312,11 +314,24 @@ declare global {
   }
   
   interface PromiseConstructor {
-    [clearing.allArr]: <V extends Promise<any>>(arr: Arr<V>) => Promise<Arr<Exclude<Awaited<V>, Skip>>>,
-    [clearing.allObj]: <V extends Promise<any>>(obj: Obj<V>) => Promise<Obj<Exclude<Awaited<V>, Skip>>>,
+    [clearing.allArr]: <V>(arr: Arr<Promise<Skip> | Promise<V>>) => Promise<Arr<V>>,
+    [clearing.allObj]: <V>(obj: Obj<Promise<Skip> | Promise<V>>) => Promise<Obj<V>>,
+    
     [clearing.later]: <T=void>() => PromiseLater<T>
   }
-  interface Promise<T> {}
+  interface Promise<T> {
+    
+    [clearing.toArr]: true extends false ? never
+      
+      : T extends (Iterable<infer TT>)
+      ? (<R>(fn: (inp: TT) => Skip | R) => Promise<R[]>)
+      
+      : T extends (AsyncIterable<infer TT>)
+      ? (<R>(fn: (inp: TT) => Skip | R) => Promise<R[]>)
+      
+      : never
+    
+  }
   interface PromiseLater<T=void> extends Promise<T> {
     resolve: T extends void ? () => void : (v: T) => void,
     reject: (err: any) => void
@@ -378,7 +393,14 @@ declare global {
       (str: string): string
     }
   }
-
+  
+  interface Generator<T = unknown, TReturn = any, TNext = any> {
+    [clearing.toArr]: <RR>(fn: (v: T) => Skip | RR) => RR[]
+  }
+  interface AsyncGenerator<T = unknown, TReturn = any, TNext = any> {
+    [clearing.toArr]: <RR>(fn: (v: T) => Skip | RR) => Promise<RR[]>
+  }
+  
 }
 
 export {};
