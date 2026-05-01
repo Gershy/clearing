@@ -786,12 +786,16 @@ console.log(await p); // 'done!'
 
 ### `Promise.prototype[cl.toArr]`
 
-Creates a promise with externally accessible `resolve` and `reject` functions.
+Converts a promise-resolving-to-iterable to an array.
 
 ```ts
 const prm = Promise.resolve([ 1, 2, 3 ]);
 const vals = await prm[cl.toArr](v => 'a'.repeat(v));
 console.log(vals); // [ 'a', 'aa', 'aaa' ]
+
+const prm2 = Promise.resolve('abc');
+const vals2 = await prm2[cl.toArr](v => v.repeat(2));
+console.log(vals2); // [ 'aa', 'bb', 'cc' ]
 ```
 
 ## `Set.prototype` extensions
@@ -932,4 +936,32 @@ Converts a map to an object by mapping over its entries.
 ```ts
 const m = new Map([ [ 'a', 1 ], [ 'b', 2 ] ]);
 console.log(m[cl.toObj]((v, k) => [ k, v * 100 ])); // { a: 100, b: 200 }
+```
+
+### `Generator.prototype[cl.toArr]`
+
+Converts a generator into an array, synchronously.
+
+```ts
+const generatorFn = function*() { yield 1; yield 2; yield 10; }
+const vals = generatorFn()[cl.toArr](v => 'a'.repeat(v));
+console.log(vals); // [ 'a', 'aa', 'aaaaaaaaaa' ]
+```
+
+### `AsyncGenerator.prototype[cl.toArr]`
+
+Converts an generator into an array promise.
+
+```ts
+const generatorFn = async function*() {
+  await new Promise(r => setTimeout(r, 1000));
+  yield 1;
+  await new Promise(r => setTimeout(r, 1000));
+  yield 2;
+  await new Promise(r => setTimeout(r, 1000));
+  yield 10;
+  await new Promise(r => setTimeout(r, 1000));
+};
+const vals = await generatorFn()[cl.toArr](v => 'a'.repeat(v)); // This will take 4 seconds
+console.log(vals); // [ 'a', 'aa', 'aaaaaaaaaa' ]
 ```

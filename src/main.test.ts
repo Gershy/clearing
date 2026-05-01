@@ -547,6 +547,10 @@ testRunner([
     const vals = await prm[toArr](n => 'a'.repeat(n));
     assertEqual(vals, [ 'a', 'aa', 'aaa' ]);
     
+    const prm2 = Promise.resolve('abc').then(v => v);
+    const vals2 = await prm2[toArr](c => c.repeat(2));
+    assertEqual(vals2, [ 'aa', 'bb', 'cc' ]);
+    
   }},
   
   { name: 'Set.prototype[count]', fn: async () => {
