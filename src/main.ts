@@ -112,7 +112,18 @@ const applyClearing = (() => {
     getClsName, getCls, isCls, inCls, then, safe, skip,
     ...Object.fromEntries(symNames.map(term => [ term, Symbol(`@gershy/clearing:${term}`) ]))
   };
-  Object.assign(global, { cl, clearing: cl });
+  Object.assign(global, {
+    cl,
+    clearing: cl,
+    
+    // This couples clearing to bundlers, but it's probably worth it. @gershy code is run with tsx;
+    // tsx may insert a `__name` transform, which is used to keep functions associated with the
+    // name they had in source code. Without any adaptation, this means that no function can safely
+    // be considered sovereign when run with tsx. Having a global definition for `__name` solves
+    // this anywhere jsfn is used. Note this is meant to be invisible to the consumer; there is no
+    // typing declared for __name.
+    __name: (fn, value) => Object.defineProperty(fn, 'name', { value, configurable: true })
+  });
   
   // <SYMBOLS> :: runtimeRefs :: /^[ ]*const[ ]([a-zA-Z0-9]+)[:]/
   const add:       typeof clearing.add       = clearing.add;

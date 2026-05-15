@@ -314,8 +314,8 @@ declare global {
   }
   
   interface PromiseConstructor {
-    [clearing.allArr]: <V>(arr: Arr<Promise<Skip> | Promise<V>>) => Promise<Arr<V>>,
-    [clearing.allObj]: <V>(obj: Obj<Promise<Skip> | Promise<V>>) => Promise<Obj<V>>,
+    [clearing.allArr]: <V>(arr: Arr<Promise<Skip | V>>) => Promise<Arr<V>>,
+    [clearing.allObj]: <V>(obj: Obj<Promise<Skip | V>>) => Promise<Obj<V>>,
     
     [clearing.later]: <T=void>() => PromiseLater<T>
   }
