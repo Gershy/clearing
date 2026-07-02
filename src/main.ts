@@ -309,6 +309,7 @@ const applyClearing = (() => {
       for (let i = 0; i < len; i++) { const r = it(this[i], i); if (r !== skip) ret.push(r); }
       return ret;
     },
+    [toArr](this: any[], it) { return this[map](it); }, // Iterator: (val, ind) => val 
     [rem](val) { const ind = this.indexOf(val); if (ind > -1) this.splice(ind, 1); },
     [toObj](this: any[], it) { // Iterator: (val, ind) => [ key0, val0 ]
       const ret: any[] = [];

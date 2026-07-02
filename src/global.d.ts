@@ -259,6 +259,7 @@ declare global {
   interface ArrayProto<T> extends SymbolsProto {
     [clearing.has]:   (val: unknown) => boolean,
     [clearing.map]:   <R>(fn: (v: T, i: number) => Skip | R) => R[],
+    [clearing.toArr]: <R>(fn: (v: T, i: number) => Skip | R) => R[],
     [clearing.add]:   <TT extends T>(val: TT) => TT,
     [clearing.rem]:   <TT extends T>(val: TT) => void,
     [clearing.count]: () => number,
