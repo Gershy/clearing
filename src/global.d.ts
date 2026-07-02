@@ -150,7 +150,7 @@ declare global {
   type ObjVals<O extends Obj> = O[Extract<keyof O, string>];
   type ObjIterator<O extends Obj> = Iterable<[ string, O[keyof O] ]>;
   
-  type Loopable0<T> = Iterable<T> | AsyncIterable<T>;
+  type Loopable0<T> = T[] | Set<T> | (T extends [infer K, infer V] ? Map<K, V> : never) | Generator<T> | AsyncGenerator<T>;
   type Loopable<T> = Loopable0<T> | Promise<Loopable0<T>>;
   
   type Json = null | boolean | number | string | Json[] | { [K: string]: Json };
@@ -167,19 +167,16 @@ declare global {
         : D
       : O;
   
-  type DeepMerge<A, B> = 0 extends 1 ? never
-    : B extends { [K: string]: any }
-      ? A extends { [K: string]: any }
-        ? {
-            [K in keyof A | keyof B]: 0 extends 1 ? never
-              : K extends keyof A
-                ? K extends keyof B
-                  ? DeepMerge<A[K], B[K]>
-                  : A[K]
-                : B[K]
-          }
-        : B
-      : B;
+  type DeepMerge<A, B> = B extends { [K: string]: any } ? A extends { [K: string]: any }
+    ? { [K in keyof A | keyof B]: 0 extends 1 ? never
+        : K extends keyof A
+          ? K extends keyof B
+            ? DeepMerge<A[K], B[K]>
+            : A[K]
+          : B[K]
+      }
+    : B extends undefined ? never : B
+    : B extends undefined ? never : B
   
   type CharSet = {
     str: string,

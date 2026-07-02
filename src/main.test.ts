@@ -122,18 +122,34 @@ const walk:      typeof cl.walk      = cl.walk;
     >,
     
     13: Enforce<
-      DeepMerge<{ x: { x: 0 } }, { a: 1, x: { a: 1 } }>,
-      { x: { x: 0, a: 1 }, a: 1 }
+      DeepMerge<{ x: { x: 0 } }, { a: 1 }>,
+      { x: { x: 0 }, a: 1 }
+    >,
+    
+    14: Enforce<
+      DeepMerge<{ a: 1, x: { x: 0 } }, { x: { x: undefined } }>,
+      { a: 1, x: { x: never } }
+    >,
+    
+    15: Enforce<
+      DeepMerge<{}, Obj<{ x: string }>>,
+      { [K: string]: { x: string } }
+    >,
+    
+    // It should be possible to call `cl.toArr` on any loopable whether or not a Promise
+    16: Enforce<
+      (Loopable<string>)[typeof cl.toArr],
+      (...arr: any[]) => any
     >,
     
     // Promise resolving to loopable type supports `cl.toArr`
-    14: Enforce<
-      Promise<Iterable<null>>[typeof cl.toArr],
+    17: Enforce<
+      Promise<Loopable<any>>[typeof cl.toArr],
       (...args: any[]) => any
     >,
     
     // Promise resolving to non-loopable type does not support `cl.toArr`
-    15: Enforce<
+    18: Enforce<
       Promise<null>[typeof cl.toArr],
       undefined
     >
@@ -299,9 +315,19 @@ testRunner([
     assertEqual(mapped, { A: 10, B: 20 });
   }},
   { name: 'Object.prototype[merge]', fn: async () => {
-    const obj: any = { a: 1, b: { c: 2 } };
-    obj[merge]({ b: { d: 3 }, e: 4 });
-    if (obj.b.c !== 2 || obj.b.d !== 3 || obj.e !== 4) throw Error('failed');
+    
+    assertEqual(
+      { a: 1, b: { c: 2 } }[merge]({ b: { d: 3 }, e: 4 }),
+      { a: 1, b: { c: 2, d: 3 }, e: 4 }
+    );
+    
+    assertEqual(
+      // Here the `undefined` value in the head object is preserved, while the `skip` in the tail
+      // object causes a property deletion
+      { a: 1, x: undefined, b: { c: 2 } }[merge]({ b: { d: 3, c: cl.skip }, e: 4 }),
+      { a: 1, x: undefined, b: { d: 3 }, e: 4 }
+    );
+    
   }},
   { name: 'Object.prototype[slash]', fn: async () => {
     const obj = { a: 1, b: 2, c: 3 };
@@ -589,7 +615,7 @@ testRunner([
     const vals = await prm[toArr](n => 'a'.repeat(n));
     assertEqual(vals, [ 'a', 'aa', 'aaa' ]);
     
-    const prm2 = Promise.resolve('abc').then(v => v);
+    const prm2 = Promise.resolve([ 'a', 'b', 'c' ]).then(v => v);
     const vals2 = await prm2[toArr](c => c.repeat(2));
     assertEqual(vals2, [ 'aa', 'bb', 'cc' ]);
     
