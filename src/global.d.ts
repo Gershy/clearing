@@ -150,6 +150,9 @@ declare global {
   type ObjVals<O extends Obj> = O[Extract<keyof O, string>];
   type ObjIterator<O extends Obj> = Iterable<[ string, O[keyof O] ]>;
   
+  type Loopable0<T> = Iterable<T> | AsyncIterable<T>;
+  type Loopable<T> = Loopable0<T> | Promise<Loopable0<T>>;
+  
   type Json = null | boolean | number | string | Json[] | { [K: string]: Json };
   type Skip = undefined;
   type SkipNever<V> = V extends Skip ? Skip extends V ? never : V : V;
@@ -163,6 +166,20 @@ declare global {
         ? (ObjMode<O> extends 'map' ? D : never) | Dive<O[K0], KM, D>
         : D
       : O;
+  
+  type DeepMerge<A, B> = 0 extends 1 ? never
+    : B extends { [K: string]: any }
+      ? A extends { [K: string]: any }
+        ? {
+            [K in keyof A | keyof B]: 0 extends 1 ? never
+              : K extends keyof A
+                ? K extends keyof B
+                  ? DeepMerge<A[K], B[K]>
+                  : A[K]
+                : B[K]
+          }
+        : B
+      : B;
   
   type CharSet = {
     str: string,
@@ -285,7 +302,7 @@ declare global {
     [clearing.has]:   <O extends Obj>                                                   (this: O, k: unknown)                                            => k is keyof O,
     [clearing.map]:   <O extends Obj, V>                                                (this: O, fn: (v: ObjVals<O>, k: ObjKeys<O>) => V)               => { [K in keyof O]: Exclude<V, Skip> },
     [clearing.mapk]:  <O extends Obj, K extends string, V>                              (this: O, fn: (v: ObjVals<O>, k: ObjKeys<O>) => Skip | [ K, V ]) => { [KK in K]: V },
-    [clearing.merge]: <A extends Obj, B extends Obj>                                    (this: A, val: B)                                                => A & B,
+    [clearing.merge]: <A extends Obj, B extends Obj>                                    (this: A, val: B)                                                => DeepMerge<A, B>,
     [clearing.slice]: <O extends Obj, K extends readonly (keyof O)[]>                   (this: O, keys: K)                                               => { [P in K[number]]: SkipNever<O[P]> },
     [clearing.slash]: <O extends Obj, T extends readonly (keyof O)[]>                   (this: O, keys: T)                                               => { [K in keyof O as Exclude<keyof O, T[number]>]: O[K] },
     [clearing.toArr]: <O extends Obj, Fn extends (v: O[keyof O], k: ObjKeys<O>) => any> (this: O, fn: Fn)                                                => Exclude<ReturnType<Fn>, Skip>[],
@@ -321,15 +338,10 @@ declare global {
   }
   interface Promise<T> {
     
-    [clearing.toArr]: true extends false ? never
-      
-      : T extends (Iterable<infer TT>)
+    // Promises of loopable types support `toArr`
+    [clearing.toArr]: T extends (Loopable<infer TT>)
       ? (<R>(fn: (inp: TT) => Skip | R) => Promise<R[]>)
-      
-      : T extends (AsyncIterable<infer TT>)
-      ? (<R>(fn: (inp: TT) => Skip | R) => Promise<R[]>)
-      
-      : never
+      : undefined
     
   }
   interface PromiseLater<T=void> extends Promise<T> {
@@ -404,4 +416,3 @@ declare global {
 }
 
 export {};
-

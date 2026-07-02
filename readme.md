@@ -789,9 +789,9 @@ console.log(await p); // 'done!'
 Converts a promise-resolving-to-iterable to an array.
 
 ```ts
-const prm = Promise.resolve([ 1, 2, 3 ]);
+const prm = Promise.resolve([ 1, 3, 5 ]);
 const vals = await prm[cl.toArr](v => 'a'.repeat(v));
-console.log(vals); // [ 'a', 'aa', 'aaa' ]
+console.log(vals); // [ 'a', 'aaa', 'aaaaa' ]
 
 const prm2 = Promise.resolve('abc');
 const vals2 = await prm2[cl.toArr](v => v.repeat(2));

@@ -94,10 +94,52 @@ const walk:      typeof cl.walk      = cl.walk;
     7: Enforce<
       Dive<{ [K in 'a' | 'b']: 'z' }, [ 'a' ], 'def'>,
       'z'
+    >,
+    
+    8: Enforce<
+      DeepMerge<{ x: 0 }, { x: 1 }>,
+      { x: 1 }
+    >,
+    
+    9: Enforce<
+      DeepMerge<{ x: 0 }, { x: 1 }>,
+      { x: 1 }
+    >,
+    
+    10: Enforce<
+      DeepMerge<{}, { x: 1 }>,
+      { x: 1 }
+    >,
+    
+    11: Enforce<
+      DeepMerge<{ x: { x: 0 } }, { x: 1 }>,
+      { x: 1 }
+    >,
+    
+    12: Enforce<
+      DeepMerge<{ x: { x: 0 } }, { a: 1 }>,
+      { x: { x: 0 }, a: 1 }
+    >,
+    
+    13: Enforce<
+      DeepMerge<{ x: { x: 0 } }, { a: 1, x: { a: 1 } }>,
+      { x: { x: 0, a: 1 }, a: 1 }
+    >,
+    
+    // Promise resolving to loopable type supports `cl.toArr`
+    14: Enforce<
+      Promise<Iterable<null>>[typeof cl.toArr],
+      (...args: any[]) => any
+    >,
+    
+    // Promise resolving to non-loopable type does not support `cl.toArr`
+    15: Enforce<
+      Promise<null>[typeof cl.toArr],
+      undefined
     >
     
   };
-  if (0) ((v?: Tests) => void 0)();
+  void (0 as any as Tests);
   
 })();
 
