@@ -57,7 +57,10 @@ const walk:      typeof cl.walk      = cl.walk;
 // Type testing
 (async () => {
   
+  // TODO: `Enforce` is deprecated; use `Assert<Equal<A, B>>`
   type Enforce<Provided, Expected extends Provided> = { provided: Provided, expected: Expected };
+  type Assert<V extends true> = V;
+  type Equal<A, B> = A extends B ? B extends A ? true : false : false;
   
   type Tests = {
     
@@ -127,29 +130,33 @@ const walk:      typeof cl.walk      = cl.walk;
     >,
     
     14: Enforce<
-      DeepMerge<{ a: 1, x: { x: 0 } }, { x: { x: undefined } }>,
-      { a: 1, x: { x: never } }
+      DeepMerge<{ a: 1, x: { a: 1, b: 2, c: 3 } }, { x: { a: 2, b: undefined, c: 4 } }>,
+      { a: 1, x: { a: 2, c: 4 } }
     >,
     
-    15: Enforce<
-      DeepMerge<{}, Obj<{ x: string }>>,
-      { [K: string]: { x: string } }
-    >,
+    15: Assert<Equal<
+      DeepMerge<{ a: { b: { c: { d: 1 } } }, x: 1 }, { a: { b: { c: { d: undefined } } }, x: 2 }>,
+      { x: 2 }
+    >>,
+    
+    16: Assert<Equal<
+      DeepMerge<{}, { [K: string]: 'abc' }>,
+      { [K: string]: 'abc' }
+    >>,
+    
+    17: Assert<Equal<
+      DeepMerge<{ x: number }, { [K: string]: string }>,
+      { [K: string]: string }
+    >>,
     
     // It should be possible to call `cl.toArr` on any loopable whether or not a Promise
-    16: Enforce<
-      (Loopable<string>)[typeof cl.toArr],
-      (...arr: any[]) => any
-    >,
-    
-    // Promise resolving to loopable type supports `cl.toArr`
-    17: Enforce<
-      Promise<Loopable<any>>[typeof cl.toArr],
-      (...args: any[]) => any
+    18: Enforce<
+      (Loopable<'XYZ'>)[typeof cl.toArr],
+      (fn: (v: 'XYZ', ...args: any[]) => any) => any
     >,
     
     // Promise resolving to non-loopable type does not support `cl.toArr`
-    18: Enforce<
+    19: Enforce<
       Promise<null>[typeof cl.toArr],
       undefined
     >

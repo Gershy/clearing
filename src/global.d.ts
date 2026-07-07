@@ -167,16 +167,35 @@ declare global {
         : D
       : O;
   
-  type DeepMerge<A, B> = B extends { [K: string]: any } ? A extends { [K: string]: any }
-    ? { [K in keyof A | keyof B]: 0 extends 1 ? never
-        : K extends keyof A
-          ? K extends keyof B
-            ? DeepMerge<A[K], B[K]>
-            : A[K]
+  // Removes any `never` and `{}` (empty object) properties
+  type Rekey<O> = O extends infer OO ? { [K in keyof OO as OO[K] extends never ? never : {} extends OO[K] ? never : string & K]: OO[K] } : never;
+  
+  type DeepMerge<A, B> = 0 extends 1 ? never
+    
+    : A extends { [K: string]: any }
+    ? B extends { [K: string]: any }
+    ? [ A, B ] extends [ { [K in infer KA]: any }, { [K in infer KB]: any } ]
+  
+    ? Rekey<{ [K in KA | KB]: 0 extends 1 ? never
+        
+        : K extends KB ? (
+          
+          // Remove undefined values
+          B[K] extends undefined ? never
+        
+          // If K is also in KA it's in both - merge A and B
+          : K extends KA         ? DeepMerge<A[K], B[K]>
+          
+          // Otherwise K is only in KB
           : B[K]
-      }
-    : B extends undefined ? never : B
-    : B extends undefined ? never : B
+          
+        )
+        
+        : A[K]
+        
+      }>
+    
+    : B : B : B;
   
   type CharSet = {
     str: string,
@@ -259,7 +278,7 @@ declare global {
   interface ArrayProto<T> extends SymbolsProto {
     [clearing.has]:   (val: unknown) => boolean,
     [clearing.map]:   <R>(fn: (v: T, i: number) => Skip | R) => R[],
-    [clearing.toArr]: <R>(fn: (v: T, i: number) => Skip | R) => R[],
+    [clearing.toArr]: <R>(fn: (v: T, i: number) => Skip | R) => R[], // Not ideal to allow `Array.prototype.toArr` in addition to `map`, but it allows it to be uniform with other Loopables
     [clearing.add]:   <TT extends T>(val: TT) => TT,
     [clearing.rem]:   <TT extends T>(val: TT) => void,
     [clearing.count]: () => number,
