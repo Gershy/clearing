@@ -57,6 +57,7 @@ const applyClearing = (() => {
     
   };
   
+  
   const symNames = [
     // <SYMBOLS> :: runtimeNames :: /[']([a-zA-Z0-9]+)[']/
     'add',
@@ -120,8 +121,8 @@ const applyClearing = (() => {
     // tsx may insert a `__name` transform, which is used to keep functions associated with the
     // name they had in source code. Without any adaptation, this means that no function can safely
     // be considered sovereign when run with tsx. Having a global definition for `__name` solves
-    // this anywhere jsfn is used. Note this is meant to be invisible to the consumer; there is no
-    // typing declared for __name.
+    // this anywhere jsfn is used. Note this is intentionally invisible to the consumer; there is
+    // no typing declared for __name.
     __name: (fn, value) => Object.defineProperty(fn, 'name', { value, configurable: true })
   });
   
