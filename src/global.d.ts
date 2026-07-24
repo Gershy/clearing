@@ -146,7 +146,7 @@ declare global {
   
   // Differentiate between "map" and "rec" ("record") - maps have arbitrary keys; recs have fixed keys
   type ObjMode<O extends { [K: string]: any }> = O extends { [K in infer KK]: any } ? (string extends KK ? 'map' : 'rec') : never;
-  type ObjKeys<O extends Obj> = Extract<keyof O, string> | `${Extract<keyof O, number>}`; // Convert numbers to strings; ignores symbols
+  type ObjKeys<O extends Obj> = (keyof O & string) | `${keyof O & number}`; // Convert numbers to strings; ignore symbols
   type ObjVals<O extends Obj> = O[Extract<keyof O, string>];
   type ObjIterator<O extends Obj> = Iterable<[ string, O[keyof O] ]>;
   
@@ -167,7 +167,7 @@ declare global {
         : D
       : O;
   
-  // Removes any `never` and `{}` (empty object) properties
+  // Aggregate keys combined with `&`; strip properties set to `never` and `{}` (empty object)
   type Rekey<O> = O extends infer OO ? { [K in keyof OO as OO[K] extends never ? never : {} extends OO[K] ? never : string & K]: OO[K] } : never;
   
   type DeepMerge<A, B> = 0 extends 1 ? never
@@ -362,7 +362,7 @@ declare global {
     
   }
   interface PromiseLater<T=void> extends Promise<T> {
-    resolve: T extends void ? () => void : (v: T) => void,
+    resolve: void extends T ? () => void : (v: T) => void,
     reject: (err: any) => void
   }
   

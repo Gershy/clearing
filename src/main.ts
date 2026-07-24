@@ -4,12 +4,12 @@ const applyClearing = (() => {
   
   // Prevent multiple installations...
   const global: any = globalThis;
-  if (global[Symbol.for(`@gershy/clearing:mem`)]) return;
-  global[Symbol.for(`@gershy/clearing:mem`)] = true;
+  if (global[Symbol.for('@gershy/clearing/dedup')]) return;
+  global[Symbol.for('@gershy/clearing/dedup')] = true;
   
   const getClsName = i => {
     if (i === null)      return 'Null';
-    if (i === undefined) return 'Undef';
+    if (i === undefined) return 'Undf';
     if (i !== i)         return 'Nan';
     return Object.getPrototypeOf(i)?.constructor.name ?? 'Prototypeless';
   };
@@ -518,7 +518,9 @@ const applyClearing = (() => {
         msg: message,
         trace: (stack ?? '<no stack>').split('\n')[map](v => v.trim() ?? skip),
         ...props as any,
-        cause: !cause ? null : cause[limn](seen)
+        cause: !!cause
+          ? cause?.[limn]?.(seen) ?? { $cls: cl.getClsName(cause) }
+          : null
       };
     },
     [mod](this: Error, props: any = {} /* { cause, msg, message, ...more } */) {
@@ -538,11 +540,15 @@ const applyClearing = (() => {
       
     },
     [suppress](this: Error) {
-      this[Symbol.for('@gershy.clearing.err.suppressed')] = true;
+      const sym = Symbol.for('@gershy/clearing/err/suppressed');
+      this[sym] = true;
       
       if (this.cause) {
-        const causes = inCls(this.cause, Error) ? [ this.cause ] : this.cause;
-        for (const err of causes as Error[]) err[suppress]();
+        const causes = [ Array, Object ].some(Cls => isCls(this.cause, Cls)) ? this.cause : [ this.cause ];
+        for (const err of causes[toArr](v => v) as Error[]) {
+          if (err[suppress]) err[suppress]();
+          else               err[sym] = true;
+        }
       }
       
       return this;
@@ -658,10 +664,7 @@ const applyClearing = (() => {
   assignSyms(AsyncGenerator.prototype, {
     async [toArr](this: AsyncGenerator, fn: (v: any) => any) {
       const r: any[] = [];
-      for await (const v of this) {
-        const vv = fn(v);
-        if (vv !== skip) r.push(vv);
-      }
+      for await (const v of this) { const vv = fn(v); if (vv !== skip) r.push(vv); }
       return r;
     }
   });

@@ -60,7 +60,7 @@ const walk:      typeof cl.walk      = cl.walk;
   // TODO: `Enforce` is deprecated; use `Assert<Equal<A, B>>`
   type Enforce<Provided, Expected extends Provided> = { provided: Provided, expected: Expected };
   type Assert<V extends true> = V;
-  type Equal<A, B> = A extends B ? B extends A ? true : false : false;
+  type Equal<A, B> = [A] extends [B] ? [B] extends [A] ? true : false : false;
   
   type Tests = {
     
@@ -596,7 +596,7 @@ testRunner([
   }},
   { name: 'Error.prototype[suppress]', fn: async () => {
     const err = Error('test')[suppress]();
-    if (!err[Symbol.for('@gershy.clearing.err.suppressed')]) throw Error('failed');
+    if (!err[Symbol.for('@gershy/clearing/err/suppressed')]) throw Error('failed');
   }},
   
   { name: 'Promise[allArr]', fn: async () => {
