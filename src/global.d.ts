@@ -361,8 +361,8 @@ declare global {
       : undefined
     
   }
-  interface PromiseLater<T=void> extends Promise<T> {
-    resolve: void extends T ? () => void : (v: T) => void,
+  interface PromiseLater<T=Skip> extends Promise<T> {
+    resolve: T extends Skip ? () => void : (v: T) => void,
     reject: (err: any) => void
   }
   
