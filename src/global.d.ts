@@ -411,6 +411,7 @@ declare global {
     [clearing.has]: (s: string) => boolean,
     [clearing.padHead]: (n: number, s?: string) => string,
     [clearing.padTail]: (n: number, s?: string) => string,
+    [clearing.toStr]: () => this,
     [clearing.toNum]: (chrs: string | CharSet) => bigint,
     [clearing.toBin]: () => Uint8Array,
     [clearing.hasHead]: <H extends string>(this: string, head: H) => this is `${H}${string}`,

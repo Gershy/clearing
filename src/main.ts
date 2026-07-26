@@ -389,6 +389,7 @@ const applyClearing = (() => {
     [padHead]: String.prototype.padStart,
     [padTail]: String.prototype.padEnd,
     [toBin]() { return enc.encode(this); },
+    [toStr]() { return this; },
     [toNum](cs: string | CharSet=String[base62]) {
       
       if (isCls(cs, String)) cs = String[charset](cs);
