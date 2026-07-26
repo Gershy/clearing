@@ -141,8 +141,13 @@ declare global {
   const cl = clearing;
   
   // Util
+  type IsAny<T> = 0 extends (1 & T) ? true : false;
   type Obj<V = any> = { [K in string]: V };
   type Arr<V = any> = V[];
+  type Equal<A, B> = 0 extends 1 ? never
+    : IsAny<A> extends true ? IsAny<B>
+    : IsAny<B> extends true ? IsAny<A>
+    : [A] extends [B] ? [B] extends [A] ? true : false : false;
   
   // Differentiate between "map" and "rec" ("record") - maps have arbitrary keys; recs have fixed keys
   type ObjMode<O extends { [K: string]: any }> = O extends { [K in infer KK]: any } ? (string extends KK ? 'map' : 'rec') : never;
@@ -361,10 +366,12 @@ declare global {
       : undefined
     
   }
-  interface PromiseLater<T=Skip> extends Promise<T> {
-    resolve: T extends Skip ? () => void : (v: T) => void,
+  interface PromiseLater<T = void> extends Promise<T> {
+    resolve: Equal<T, void> extends true ? () => void : (v: T) => void,
     reject: (err: any) => void
   }
+  
+  type VV = Equal<void, any>;
   
   interface SetConstructor {}
   interface Set<T> extends SymbolsProto {

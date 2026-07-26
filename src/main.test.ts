@@ -57,82 +57,79 @@ const walk:      typeof cl.walk      = cl.walk;
 // Type testing
 (async () => {
   
-  // TODO: `Enforce` is deprecated; use `Assert<Equal<A, B>>`
-  type Enforce<Provided, Expected extends Provided> = { provided: Provided, expected: Expected };
   type Assert<V extends true> = V;
-  type Equal<A, B> = [A] extends [B] ? [B] extends [A] ? true : false : false;
   
   type Tests = {
     
-    1: Enforce<
+    1: Assert<Equal<
       Dive<{ a: { b: { c: 'xyz' } } }, []>,
       { a: { b: { c: 'xyz' } } }
-    >,
+    >>,
     
-    2: Enforce<
+    2: Assert<Equal<
       Dive<{ a: { b: { c: 'xyz' } } }, [ 'a', 'b', 'c' ]>,
       'xyz'
-    >,
+    >>,
     
-    3: Enforce<
+    3: Assert<Equal<
       Dive<{ a: { b: { c: 'xyz' } } }, [ 'a', 'b' ]>,
       { c: 'xyz' }
-    >,
+    >>,
     
-    4: Enforce<
+    4: Assert<Equal<
       Dive<{ a: { b: { c: 'xyz' } } }, [ 'a', 'b', 'd' ]>,
       undefined
-    >,
+    >>,
     
-    5: Enforce<
+    5: Assert<Equal<
       Dive<{ a: { b: { c: 'xyz' } } }, [ 'a', 'c', 'b' ]>,
       undefined
-    >,
+    >>,
     
-    6: Enforce<
+    6: Assert<Equal<
       Dive<{ [K: string]: 'z' }, [ 'a' ], 'def'>,
       'def' | 'z'
-    >,
+    >>,
     
-    7: Enforce<
+    7: Assert<Equal<
       Dive<{ [K in 'a' | 'b']: 'z' }, [ 'a' ], 'def'>,
       'z'
-    >,
+    >>,
     
-    8: Enforce<
+    8: Assert<Equal<
       DeepMerge<{ x: 0 }, { x: 1 }>,
       { x: 1 }
-    >,
+    >>,
     
-    9: Enforce<
+    9: Assert<Equal<
       DeepMerge<{ x: 0 }, { x: 1 }>,
       { x: 1 }
-    >,
+    >>,
     
-    10: Enforce<
+    10: Assert<Equal<
       DeepMerge<{}, { x: 1 }>,
       { x: 1 }
-    >,
+    >>,
     
-    11: Enforce<
+    11: Assert<Equal<
       DeepMerge<{ x: { x: 0 } }, { x: 1 }>,
       { x: 1 }
-    >,
+    >>,
     
-    12: Enforce<
+    12: Assert<Equal<
       DeepMerge<{ x: { x: 0 } }, { a: 1 }>,
       { x: { x: 0 }, a: 1 }
-    >,
+    >>,
     
-    13: Enforce<
+    13: Assert<Equal<
       DeepMerge<{ x: { x: 0 } }, { a: 1 }>,
-      { x: { x: 0 }, a: 1 }
-    >,
+      { x: { x: 0 }, a: 1 } 
+    >>,
     
-    14: Enforce<
+    14: Assert<Equal<
       DeepMerge<{ a: 1, x: { a: 1, b: 2, c: 3 } }, { x: { a: 2, b: undefined, c: 4 } }>,
       { a: 1, x: { a: 2, c: 4 } }
-    >,
+    >>,
     
     15: Assert<Equal<
       DeepMerge<{ a: { b: { c: { d: 1 } } }, x: 1 }, { a: { b: { c: { d: undefined } } }, x: 2 }>,
@@ -150,16 +147,16 @@ const walk:      typeof cl.walk      = cl.walk;
     >>,
     
     // It should be possible to call `cl.toArr` on any loopable whether or not a Promise
-    18: Enforce<
+    18: Assert<Equal<
       (Loopable<'XYZ'>)[typeof cl.toArr],
       (fn: (v: 'XYZ', ...args: any[]) => any) => any
-    >,
+    >>,
     
     // Promise resolving to non-loopable type does not support `cl.toArr`
-    19: Enforce<
+    19: Assert<Equal<
       Promise<null>[typeof cl.toArr],
       undefined
-    >
+    >>
     
   };
   void (0 as any as Tests);
