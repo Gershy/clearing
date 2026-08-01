@@ -1,6 +1,6 @@
 {
   "name": "@gershy/clearing",
-  "version": "0.0.51",
+  "version": "0.0.52",
   "author": "Gershom Maes",
   "description": "Adds the features you always wish javascript had!",
   "keywords": [
@@ -10,12 +10,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gershy/clearing.git"
+    "url": "git+https://github.com/gershyNpm/clearing.git"
   },
   "bugs": {
-    "url": "https://github.com/gershy/clearing/issues"
+    "url": "https://github.com/gershyNpm/clearing/issues"
   },
-  "homepage": "https://github.com/gershy/clearing#readme",
+  "homepage": "https://github.com/gershyNpm/clearing#readme",
   "type": "module",
   "files": [
     "cmp"
