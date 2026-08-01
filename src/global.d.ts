@@ -155,9 +155,11 @@ declare global {
   type ObjVals<O extends Obj> = O[Extract<keyof O, string>];
   type ObjIterator<O extends Obj> = Iterable<[ string, O[keyof O] ]>;
   
+  // Loopable
   type Loopable0<T> = T[] | Set<T> | (T extends [infer K, infer V] ? Map<K, V> : never) | Generator<T> | AsyncGenerator<T>;
   type Loopable<T> = Loopable0<T> | Promise<Loopable0<T>>;
   
+  // Synonyms
   type Json = null | boolean | number | string | Json[] | { [K: string]: Json };
   type Skip = undefined;
   type SkipNever<V> = V extends Skip ? Skip extends V ? never : V : V;
